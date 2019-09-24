@@ -1,5 +1,5 @@
 # Dictionary
-## C++ Implementation of Decision Tree Algorithm
+## C++ Implementation of Dictionary using trie
 
 
 # Data Structure and Algorithms used in Project

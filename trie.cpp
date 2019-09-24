@@ -18,19 +18,21 @@ node* getnode()
         newnode->child[i] = NULL;
 	return newnode;
 }
+bool is_alpha(string word){
+	
+	for(int i=0;i<word.size();i++){
+		if(word[i]<'a' || word[i]>'z')
+			return false;
+	}
+	return true;
+}
 void insert(node *root,string key,string str)
 {
-//	cout<<"IN Insert function\n";
-//	if(root)
-//		cout<<"Root exists\n";
-//	cout<<key<<" "<<str<<"\n";
+
 	node *temp=root;
 	for(int i=0;i<key.length();i++)
 	{
 		int index=key[i]-'a';
-//		if(temp->child[index]){
-//			cout<<key[i]<<" "<<"Child exisits\n";
-//		}
 		if(!(temp->child[index]))		
 	     temp->child[index]=getnode();
 	    temp=temp->child[index];
@@ -40,7 +42,7 @@ void insert(node *root,string key,string str)
 	temp->eof=true;
 	
 }
-bool search(node *root,string key)
+bool search1(node *root,string key)
 {
 	node *temp=root;
 	if(!temp)return false;
@@ -67,49 +69,72 @@ bool islastnode(node *root)
 	}
 	return 1;
 }
-void suggest(node *root,string query)
+int min(int x,int y)
 {
-	if(root->eof)
+	if(x<y)
+	return x;
+	else
+	return y;
+}
+int minelement(int *row,int size)
+{
+	int m=row[0];
+	for(int i=0;i<size;i++)
 	{
-		cout<<query<<endl;
+		if(row[i]<m)
+		m=row[i];
 	}
-	if(islastnode(root))
-	return;
+	return m;
+}
+void searchrec(node *temp, char letter, string word, int *previousrow, string result[], int dist, int &count) 
+{
+	int size = word.length()+1;
+    int *currentrow = new int[size];
+    currentrow[0] = previousrow[0] + 1;
+    int insertcost,deletecost,replacecost;
+    for(int i=1;i<size;i++)
+    {
+    	insertcost=currentrow[i-1]+1;
+    	deletecost=previousrow[i]+1;
+    	if(word[i-1]==letter)
+    	{
+    		replacecost=previousrow[i-1];
+		}
+		else
+		replacecost=previousrow[i-1]+1;
+		currentrow[i]=min(min(insertcost,deletecost),replacecost);
+	}
+	if(currentrow[size-1]==dist&&temp->eof)
+	{
+		result[count++]=temp->word;
+	}
+	if(minelement(currentrow,size)<=dist)
+	{
+		for(int i=0;i<alfa;i++)
+		{
+			if(temp->child[i])
+			{
+				searchrec(temp->child[i],i+'a',word,currentrow,result,dist,count);
+			}
+		}
+	}
+
+}
+void search(node *root,string word,int dist,string result[],int &count)
+{
+	int size=word.length();
+	int *currentrow = new int[size+1];
+	for(int i=0;i<=size;i++)
+	{
+		currentrow[i]=i;
+	}
 	for(int i=0;i<alfa;i++)
 	{
 		if(root->child[i])
 		{
-			query.push_back('a'+i);
-			suggest(root->child[i],query);
+			searchrec(root->child[i], i+'a', word, currentrow, result, dist, count);
 		}
 	}
-}
-int autosuggest(node * root,string query)
-{
-	node *temp=root;
-	int i;
-	int n=query.length();
-	for(i=0;i<n;i++)
-	{
-		int index=query[i]-'a';
-		if(!temp->child[index])
-		return 0;
-		temp=temp->child[index];
-	}
-	bool isword=temp->eof;
-	bool islast=islastnode(temp);
-	if(isword&&islast)
-	{
-		cout<<query<<endl;
-		return -1;
-	}
-	if(!islast)
-	{
-		//string prefix=query;
-		suggest(temp,query);
-		return 1;
-	}
-	
 }
 node *root=getnode();
 void store()
@@ -151,18 +176,19 @@ void store()
 			else
 			meaning+=ch;	
 		}
-//		cout<<word<<" "<<meaning<<"\n";
+
+		if(is_alpha(word))
 		insert(root, word,meaning);
-//		cout<<"HI\n";
+
 		do{
 			fin.get(ch);
 		}while(ch == ' ' || ch == '\n' ||  ch == '\t');
-		cout<<word<<endl;
+		
 		if(ch ==',' )
 			continue;
 		else if( ch =='}' )
 			{
-				//cout<<"lokesh";
+				
 				break;
 			}
 	}
@@ -170,15 +196,23 @@ void store()
 }
 int main()
 {
-	cout<<"hello";
+	
 	store(); 
-	cout<<"hello";
-	  //cout<<search(root,"self")<<endl;
-//    cout<<search(root,"the")<<endl;
-//   int co=autosuggest(root,"the");
-//    if(co==-1)
-//    cout<<"no other string found\n";
-//    else if(!co)
-//    cout<<"no string found\n";
+	string word;
+	cin>>word;
+	if(!search1(root,word))
+	{
+		int count=0;
+		int dist=0;
+		string result[1000];
+		while(count<10){
+				dist++;
+				
+				search(root,word,dist,result,count);
+				
+			}
+			for(int i=0;i<10;i++)
+				cout<<result[i]<<endl;		
+	}
 	return 0;
 }
